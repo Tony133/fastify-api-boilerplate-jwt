@@ -37,7 +37,7 @@
     "@fastify/type-provider-typebox": "^6.1.0",
     "@fastify/under-pressure": "^9.0.3",
     "argon2": "^0.44.0",
-    "close-with-grace": "^2.4.0",
+    "close-with-grace": "^2.5.0",
     "env-schema": "^7.0.0",
     "fastify": "^5.7.4",
     "fastify-plugin": "^5.1.0",
