@@ -44,7 +44,7 @@
     "kysely": "^0.28.17",
     "nodemailer": "^8.0.7",
     "pg": "^8.20.0",
-    "typebox": "^1.1.37"
+    "typebox": "^1.1.38"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.3",
