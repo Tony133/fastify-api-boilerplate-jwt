@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.3",
-    "@commitlint/config-conventional": "^20.5.3",
+    "@commitlint/config-conventional": "^21.0.0",
     "@types/node": "^25.6.2",
     "@types/nodemailer": "^8.0.0",
     "@types/pg": "^8.18.0",
