@@ -47,7 +47,7 @@
     "typebox": "^1.1.38"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.5.3",
+    "@commitlint/cli": "^21.0.0",
     "@commitlint/config-conventional": "^21.0.0",
     "@types/node": "^25.6.2",
     "@types/nodemailer": "^8.0.0",
