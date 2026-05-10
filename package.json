@@ -41,7 +41,7 @@
     "env-schema": "^7.0.0",
     "fastify": "^5.8.5",
     "fastify-plugin": "^5.1.0",
-    "kysely": "^0.28.17",
+    "kysely": "^0.29.0",
     "nodemailer": "^8.0.7",
     "pg": "^8.20.0",
     "typebox": "^1.1.38"
