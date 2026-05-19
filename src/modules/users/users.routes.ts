@@ -50,8 +50,8 @@ const usersRoutes: FastifyPluginAsyncTypebox = async (fastify: FastifyInstance) 
       schema: getUserSchema
     },
     async (request: FastifyRequest<{ Params: UserParams }>, reply: FastifyReply) => {
-      const userId = (request.user as { sub: string; role: string[] }).sub;
-      const userRole = (request.user as { role: string[] }).role;
+      const userId = request.user.sub;
+      const userRole = request.user.role;
       if (request.params.id !== userId && !userRole.includes('ADMIN')) {
         return reply.code(403).send({ error: "Forbidden: cannot access other user data" });
       }
@@ -71,8 +71,8 @@ const usersRoutes: FastifyPluginAsyncTypebox = async (fastify: FastifyInstance) 
     },
     async (request: FastifyRequest<{ Params: UserParams; Body: UpdateUserDto }>, reply: FastifyReply) => {
       try {
-        const userId = (request.user as { sub: string; role: string[] }).sub;
-        const userRole = (request.user as { role: string[] }).role;
+        const userId = request.user.sub;
+        const userRole = request.user.role;
         if (request.params.id !== userId && !userRole.includes('ADMIN')) {
           return reply.code(403).send({ error: "Forbidden: cannot modify other user data" });
         }
@@ -95,8 +95,8 @@ const usersRoutes: FastifyPluginAsyncTypebox = async (fastify: FastifyInstance) 
       schema: deleteUserSchema
     },
     async (request: FastifyRequest<{ Params: UserParams }>, reply: FastifyReply) => {
-      const userId = (request.user as { sub: string; role: string[] }).sub;
-      const userRole = (request.user as { role: string[] }).role;
+      const userId = request.user.sub;
+      const userRole = request.user.role;
       if (request.params.id !== userId && !userRole.includes('ADMIN')) {
         return reply.code(403).send({ error: "Forbidden: cannot delete other user" });
       }
