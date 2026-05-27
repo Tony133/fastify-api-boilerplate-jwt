@@ -34,7 +34,7 @@ declare module "fastify" {
       sub: string;
       name: string;
       email: string;
-      role: Role;
+      role: Role[];
     };
   }
 
