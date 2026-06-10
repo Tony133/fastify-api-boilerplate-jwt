@@ -40,7 +40,7 @@
     "close-with-grace": "^2.4.0",
     "env-schema": "^7.0.0",
     "fastify": "^5.8.5",
-    "fastify-plugin": "^5.1.0",
+    "fastify-plugin": "^6.0.0",
     "kysely": "^0.29.2",
     "nodemailer": "^8.0.11",
     "pg": "^8.21.0",
