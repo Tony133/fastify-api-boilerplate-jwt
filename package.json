@@ -50,7 +50,7 @@
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
     "@types/node": "^25.9.2",
-    "@types/nodemailer": "^8.0.0",
+    "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.18.0",
     "c8": "^11.0.0",
     "concurrently": "^9.2.1",
