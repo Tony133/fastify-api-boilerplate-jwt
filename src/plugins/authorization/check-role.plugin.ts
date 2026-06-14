@@ -7,7 +7,7 @@ async function checkRolePlugin(fastify: FastifyInstance) {
       const user = request.user;
 
       if (typeof user === "object" && user !== null && "role" in user) {
-        const roles = user.role as string[];
+        const roles = user.role;
         const userRole = roles[0];
         if (userRole !== requiredRole) {
           reply.code(403).send({ message: "Insufficient permissions" });

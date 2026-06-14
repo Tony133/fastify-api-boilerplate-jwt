@@ -118,7 +118,7 @@ const authenticationRoutes: FastifyPluginAsyncTypebox = async (
     { preHandler: [fastify.checkToken], schema: userAuthenticatedSchema },
     async function (request, reply) {
       try {
-        const userId = (request.user as { sub: string }).sub;
+        const userId = request.user.sub;
         const result = await fastify.authenticationService.getUserData(userId);
         return reply.status(200).send(result);
       } catch (err) {
