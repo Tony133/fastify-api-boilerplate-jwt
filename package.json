@@ -42,7 +42,7 @@
     "fastify": "^5.8.5",
     "fastify-plugin": "^6.0.0",
     "kysely": "^0.29.2",
-    "nodemailer": "^8.0.11",
+    "nodemailer": "^9.0.0",
     "pg": "^8.21.0",
     "typebox": "^1.2.14"
   },
