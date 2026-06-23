@@ -5,11 +5,11 @@ import { AuthenticationService } from '../src/modules/authentication/authenticat
 import { RegisterService } from '../src/modules/register/register.service';
 import { UsersService } from '../src/modules/users/users.service';
 import { ChangePasswordService } from '../src/modules/change-password/change-password.service';
-import { Role } from "../../shared/role/role.enum";
-import { HashingService } from '../../shared/hashing/hashing.service';
+import { Role } from '../src/shared/enums/role.enum';
+import { HashingService } from '../src/shared/hashing/hashing.service';
 import { ForgotPasswordService } from "../src/modules/forgot-password/forgot-password.service";
 import { Config } from "../src/plugins/config.plugin";
-import { FastifyReply, FastifyRequest } from "fastify/types/request";
+import { FastifyReply, FastifyRequest } from 'fastify';
 import { MailerService } from '../src/shared/mailer/mailer.service';
 
 declare module "fastify" {

@@ -1,8 +1,8 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "noEmit": true,
+    "moduleResolution": "nodenext",
     "typeRoots": ["node_modules/@types", "@types"]
   },
   "include": ["../src/**/*.ts", "**/*.ts"]

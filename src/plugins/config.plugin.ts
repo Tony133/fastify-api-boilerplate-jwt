@@ -61,7 +61,6 @@ export const EnvSchema = Type.Object({
   SWAGGER_USER: Type.String(),
   SWAGGER_PASSWORD: Type.String(),
   FASTIFY_PORT: Type.Number({ default: 3000 }),
-  FASTIFY_PRETTY_LOGS: Type.Boolean({ default: false }),
   FASTIFY_CLOSE_GRACE_DELAY: Type.Number({ default: 500 }),
   FASTIFY_ADDRESS: Type.String({ default: '127.0.0.1' }),
 });
