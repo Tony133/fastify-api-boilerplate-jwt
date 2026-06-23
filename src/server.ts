@@ -32,7 +32,9 @@ server.addHook('onClose', async () => {
 
 // Start listening
 const PORT = parseInt(process.env.FASTIFY_PORT ?? '3000') || 3000;
-server.listen({ port: PORT, host: '0.0.0.0' }, (err) => {
+const HOST = process.env.FASTIFY_ADDRESS ?? '0.0.0.0';
+
+server.listen({ port: PORT, host: HOST }, (err) => {
   if (err) {
     server.log.error({ err }, 'Server shutdown due to an error');
     process.exit(1);

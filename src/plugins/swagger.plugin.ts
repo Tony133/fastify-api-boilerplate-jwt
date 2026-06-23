@@ -5,14 +5,18 @@ import SwaggerUI from "@fastify/swagger-ui";
 import fastifyBasicAuth from "@fastify/basic-auth";
 
 async function swaggerGeneratorPlugin(fastify: FastifyInstance) {
+  const { config } = fastify;
 
   fastify.register(fastifyBasicAuth, {
     validate: (username: string, password: string, req, reply, done) => {
-      if (username === process.env.SWAGGER_USER && password === process.env.SWAGGER_PASSWORD) {
+      if (
+        username === config.SWAGGER_USER &&
+        password === config.SWAGGER_PASSWORD
+      ) {
         done();
       } else {
-        fastify.log.error("Unauthorized");
-        done(new Error("Unauthorized"));
+        fastify.log.error('Unauthorized');
+        done(new Error('Unauthorized'));
       }
     },
     authenticate: true

@@ -36,7 +36,7 @@ describe('ForgotPasswordService', () => {
     assert.strictEqual(result.success, true);
     assert.strictEqual(
       result.message,
-      'A temporary password has been sent to your email.'
+      'A temporary password has been sent to your email'
     );
   });
   

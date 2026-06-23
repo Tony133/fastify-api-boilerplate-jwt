@@ -1,4 +1,3 @@
-// test/services/change-password.service.test.ts
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
 import { ChangePasswordService } from '../../src/modules/change-password/change-password.service';

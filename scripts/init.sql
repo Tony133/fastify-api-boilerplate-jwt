@@ -1,5 +1,4 @@
 -- scripts/init.sql
-\c app_backend;
 
 -- If it does not exist, enable the extension for UUIDs.
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";

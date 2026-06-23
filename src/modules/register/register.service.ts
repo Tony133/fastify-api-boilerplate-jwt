@@ -21,9 +21,11 @@ export class RegisterService {
       throw httpErrors.conflict('User already registered');
     }
 
-    const passwordHash = userData.password
-      ? await this.hashingService.hash(userData.password)
-      : '';
+    if (!userData.password) { 
+      throw httpErrors.badRequest('Password is required');
+    }
+    
+    const passwordHash = await this.hashingService.hash(userData.password);
 
     return await this.db
       .insertInto('users')

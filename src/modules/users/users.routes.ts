@@ -30,7 +30,6 @@ const usersRoutes: FastifyPluginAsyncTypebox = async (fastify: FastifyInstance) 
     }
   );
 
-  // GET ALL
   fastify.get(
     "/",
     {
