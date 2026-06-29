@@ -39,7 +39,7 @@
     "argon2": "^0.44.0",
     "close-with-grace": "^2.5.0",
     "env-schema": "^7.0.0",
-    "fastify": "^5.8.5",
+    "fastify": "^5.9.0",
     "fastify-plugin": "^6.0.0",
     "kysely": "^0.29.2",
     "nodemailer": "^9.0.1",
