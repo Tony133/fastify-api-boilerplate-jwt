@@ -13,3 +13,11 @@ updates:
   labels:
     - dependabot
     - auto-merge
+
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: weekly
+  labels:
+    - dependabot
+    - auto-merge
