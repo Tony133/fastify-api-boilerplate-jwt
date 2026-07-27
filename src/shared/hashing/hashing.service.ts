@@ -6,7 +6,7 @@ export class HashingService {
     memoryCost: 2 ** 16,
     timeCost: 3,
     parallelism: 1
-  };
+  } as const;
 
   public async hash(data: string | Buffer): Promise<string> {
     return await argon2.hash(data, this.options);
