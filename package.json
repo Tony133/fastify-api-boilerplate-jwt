@@ -26,7 +26,7 @@
   ],
   "dependencies": {
     "@fastify/autoload": "^6.5.0",
-    "@fastify/basic-auth": "^6.2.0",
+    "@fastify/basic-auth": "^6.3.0",
     "@fastify/cors": "^11.3.0",
     "@fastify/helmet": "^13.1.0",
     "@fastify/jwt": "^10.2.1",
