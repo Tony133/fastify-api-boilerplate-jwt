@@ -51,7 +51,7 @@
     "@commitlint/config-conventional": "^21.2.0",
     "@types/node": "^26.2.0",
     "@types/nodemailer": "^8.0.1",
-    "@types/pg": "^8.21.0",
+    "@types/pg": "^8.23.1",
     "c8": "^12.0.0",
     "concurrently": "^10.0.5",
     "fastify-tsconfig": "^3.0.0",
