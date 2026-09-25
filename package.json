@@ -32,7 +32,7 @@
     "@fastify/jwt": "^10.2.2",
     "@fastify/rate-limit": "^11.2.0",
     "@fastify/sensible": "^6.0.5",
-    "@fastify/swagger": "^9.8.1",
+    "@fastify/swagger": "^9.9.0",
     "@fastify/swagger-ui": "^6.1.1",
     "@fastify/type-provider-typebox": "^6.1.0",
     "@fastify/under-pressure": "^9.2.0",
