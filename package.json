@@ -38,7 +38,7 @@
     "@fastify/under-pressure": "^9.2.0",
     "argon2": "^0.45.1",
     "close-with-grace": "^2.5.0",
-    "env-schema": "^8.0.0",
+    "env-schema": "^8.0.1",
     "fastify": "^5.12.5",
     "fastify-plugin": "^6.0.0",
     "kysely": "^0.29.6",
