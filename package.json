@@ -35,7 +35,7 @@
     "@fastify/swagger": "^9.9.2",
     "@fastify/swagger-ui": "^6.1.2",
     "@fastify/type-provider-typebox": "^6.2.0",
-    "@fastify/under-pressure": "^9.2.0",
+    "@fastify/under-pressure": "^9.2.1",
     "argon2": "^0.45.1",
     "close-with-grace": "^2.5.0",
     "env-schema": "^8.0.1",
