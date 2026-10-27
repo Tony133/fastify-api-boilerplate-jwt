@@ -1,0 +1,23 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "13:00"
+  open-pull-requests-limit: 10
+  groups:
+    commitlint-dependencies:
+      patterns:
+        - "@commitlint/*"
+  labels:
+    - dependabot
+    - auto-merge
+
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: weekly
+  labels:
+    - dependabot
+    - auto-merge

@@ -1,0 +1,33 @@
+name: "fastify-api-boilerplate-jwt"
+
+services:
+  db-postgres:
+    image: postgres:18-alpine
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass123
+      POSTGRES_DB: app_backend
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Runs the SQL script when the container is initialized
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  db-postgres-test:
+    image: postgres:18-alpine
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: test_db
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./scripts/init-test-ci.sql:/docker-entrypoint-initdb.d/init-test-ci.sql
+
+volumes:
+  postgres_data:
+  postgres_test_data:
