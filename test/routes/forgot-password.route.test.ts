@@ -38,13 +38,15 @@ describe('Forgot Password Routes', () => {
     assert.strictEqual(payload.success, true);
   });
 
-  test('POST /api/forgot-password - should return 404 for non-existent email', async () => {
+  test('POST /api/forgot-password - should return 200 (generic answer) for non-existent email', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/forgot-password',
       payload: { email: 'notfound@example.com' }
     });
 
-    assert.strictEqual(response.statusCode, 404);
+    // Unknown emails are indistinguishable from known ones (no user enumeration)
+    assert.strictEqual(response.statusCode, 200);
+    assert.strictEqual(JSON.parse(response.payload).success, true);
   });
 });

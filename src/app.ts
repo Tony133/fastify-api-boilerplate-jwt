@@ -12,18 +12,17 @@ export interface AppOptions
   extends FastifyServerOptions,
     Partial<AutoloadPluginOptions> {}
 
-// Centralized configuration
-export const options: AppOptions = {
-  bodyLimit: 1048576 * 50,
-  logger: {
-    level: process.env.LOG_LEVEL || 'info',
+/** Pino options for the given level; pretty-printed only at `debug`. */
+export function buildLoggerOptions(level: string | undefined) {
+  return {
+    level: level || 'info',
     formatters: {
-      level: (label) => {
+      level: (label: string) => {
         return { level: label.toUpperCase() };
       }
     },
     transport:
-      process.env.LOG_LEVEL === 'debug'
+      level === 'debug'
         ? {
             target: 'pino-pretty',
             options: {
@@ -33,7 +32,13 @@ export const options: AppOptions = {
             }
           }
         : undefined
-  },
+  };
+}
+
+// Centralized configuration
+export const options: AppOptions = {
+  bodyLimit: 1048576 * 50,
+  logger: buildLoggerOptions(process.env.LOG_LEVEL),
   ajv: {
     customOptions: {
       removeAdditional: 'all'
@@ -76,8 +81,11 @@ const app: FastifyPluginAsync<AppOptions> = async (
     options: { ...opts, prefix: '/api' },
     encapsulate: true,
     maxDepth: 2,
-    indexPattern: /.*plugin\.ts$/,
-    ignorePattern: /.*\.(schema|service|routes)\.ts$/
+    // Match both the TypeScript sources (tsx, tests) and the compiled output
+    // (dist/*.js): with a .ts-only pattern the production build loaded every
+    // routes file twice and failed with FST_ERR_DUPLICATED_ROUTE.
+    indexPattern: /.*plugin\.(ts|js)$/,
+    ignorePattern: /.*\.(schema|schemas|service|routes|model)\.(ts|js)$/
   });
 
 };

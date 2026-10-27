@@ -50,7 +50,17 @@ For production mode
 npm run test
 ```
 
-Run the test cases
+Run the test cases. The suite needs the test database (`docker compose up -d db-postgres-test`)
+and the `DB_TEST_*` variables of your `.env`; the `users` table of that database is emptied at
+the start of every test file.
+
+Tests are compiled with `tsc` (see `tsconfig.test.json`) and run with the Node.js test runner on
+the compiled output, so the coverage report (c8) reflects the real sources. The build fails when
+coverage drops below 100% (lines, branches, functions, statements); see `.c8rc.json`.
+
+```sh
+npm run test:coverage   # same, plus an HTML report in coverage/
+```
 
 ## Docker
 

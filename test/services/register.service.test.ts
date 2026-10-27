@@ -47,4 +47,23 @@ describe('RegisterService', () => {
       }
     );
   });
+
+  test('register - should throw 400 if the password is missing', async () => {
+    const mockDb: any = {
+      selectFrom: () => mockDb,
+      select: () => mockDb,
+      where: () => mockDb,
+      executeTakeFirst: async () => undefined
+    };
+    const service = new RegisterService(mockDb, { hash: async () => 'h' } as any);
+
+    await assert.rejects(
+      service.register({ firstName: 'No', lastName: 'Pass', email: 'nopass@example.com', password: '' } as any),
+      (err: any) => {
+        assert.strictEqual(err.statusCode, 400);
+        assert.strictEqual(err.message, 'Password is required');
+        return true;
+      }
+    );
+  });
 });

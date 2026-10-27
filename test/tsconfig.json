@@ -1,9 +1,13 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "noEmit": true,
-    "moduleResolution": "nodenext",
-    "typeRoots": ["node_modules/@types", "@types"]
+    "rootDir": "..",
+    "outDir": "../dist-test",
+    "sourceMap": true,
+    "importHelpers": true,
+    "noUnusedLocals": false,
+    "typeRoots": ["../node_modules/@types", "../@types"]
   },
-  "include": ["../src/**/*.ts", "**/*.ts"]
+  "include": ["../@types", "../src/**/*.ts", "**/*.ts"],
+  "exclude": ["../node_modules", "../dist", "../dist-test"]
 }

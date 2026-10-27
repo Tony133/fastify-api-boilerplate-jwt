@@ -3,6 +3,17 @@ import fastifyUnderPressure from '@fastify/under-pressure';
 import fp from 'fastify-plugin';
 import { sql } from 'kysely';
 
+/** Reports the service as unhealthy when the database does not answer. */
+export async function databaseHealthCheck(fastify: FastifyInstance): Promise<boolean> {
+  try {
+    await sql`SELECT 1`.execute(fastify.database);
+    return true;
+  } catch (err) {
+    fastify.log.error({ err }, 'Health check failed: Database connection error');
+    return false;
+  }
+}
+
 async function underPressurePlugin(fastify: FastifyInstance) {
   await fastify.register(fastifyUnderPressure, {
     maxEventLoopDelay: 1000,
@@ -11,15 +22,7 @@ async function underPressurePlugin(fastify: FastifyInstance) {
     maxEventLoopUtilization: 0.98,
     message: 'Server under heavy load, please try again later.',
     retryAfter: 50,
-    healthCheck: async () => {
-      try {
-        await sql`SELECT 1`.execute(fastify.database);
-        return true;
-      } catch (err) {
-        fastify.log.error({ err }, 'Health check failed: Database connection error');
-        return false;
-      }
-    },
+    healthCheck: () => databaseHealthCheck(fastify),
     healthCheckInterval: 5000
   });
 }

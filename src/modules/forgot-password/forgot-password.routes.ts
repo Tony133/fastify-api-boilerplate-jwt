@@ -7,7 +7,11 @@ const forgotPasswordRoutes: FastifyPluginAsyncTypebox = async (
 ): Promise<void> => {
   fastify.post<{ Body: ForgotPasswordBody }>(
     '/',
-    { schema: forgotPasswordSchema },
+    {
+      schema: forgotPasswordSchema,
+      // Each call sends an email and rotates a password: keep it tight
+      config: { rateLimit: { max: 5, timeWindow: '15 minutes' } }
+    },
     async function (request, reply) {
       return await fastify.forgotPasswordService.forgotPassword(request.body);
     }

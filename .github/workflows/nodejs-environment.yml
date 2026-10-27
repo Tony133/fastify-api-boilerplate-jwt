@@ -14,6 +14,33 @@ jobs:
       matrix:
         node-version: [22.x, 24.x, 26.x]
 
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test_user -d test_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      SECRET_KEY_JWT: ci-only-secret-do-not-use-in-production
+      SWAGGER_USER: swagger
+      SWAGGER_PASSWORD: swagger
+      DB_PASSWORD: unused-in-ci
+      DB_TEST_HOST: localhost
+      DB_TEST_PORT: 5432
+      DB_TEST_USER: test_user
+      DB_TEST_PASSWORD: test_password
+      DB_TEST_NAME: test_db
+
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         name: Checkout code
@@ -24,8 +51,31 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build TypeScript
         run: npm run build:ts
-        
+
+      - name: Create test database schema
+        run: psql "postgresql://test_user:test_password@localhost:5432/test_db" -f scripts/init-test-ci.sql
+
+      - name: Prepare .env for tests
+        # `npm test` loads .env via --env-file; variables set above in `env`
+        # take precedence over the file.
+        run: cp .env.example .env
+
+      - name: Run tests (100% coverage enforced)
+        run: npm test
+
+      - name: Smoke-test the compiled server (what Docker runs)
+        run: |
+          node dist/server.js > server.log 2>&1 &
+          SERVER_PID=$!
+          for i in $(seq 1 20); do
+            curl -sf http://127.0.0.1:3000/api/ > /dev/null && break
+            sleep 1
+          done
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/api/)
+          kill $SERVER_PID || true
+          cat server.log
+          test "$STATUS" = "200"

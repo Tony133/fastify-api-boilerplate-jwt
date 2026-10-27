@@ -68,6 +68,9 @@ export const createUserSchema = {
     'dateOfLastAccess'
   ]),
   response: {
+    401: ErrorResponse,
+    403: ErrorResponse,
+    409: ErrorResponse,
     201: UserResponse,
     400: ErrorResponse,
     500: ErrorResponse
@@ -79,6 +82,8 @@ export const getAllUsersSchema = {
   summary: 'Get all users',
   description: 'Get all users',
   response: {
+    401: ErrorResponse,
+    403: ErrorResponse,
     200: Type.Array(UserResponse),
     500: ErrorResponse
   }
@@ -89,9 +94,11 @@ export const getUserSchema = {
   summary: 'Get user by id',
   description: 'Get a user by ID',
   params: Type.Object({
-    id: Type.String({ description: 'User ID' })
+    id: Type.String({ format: 'uuid', description: 'User ID' })
   }),
   response: {
+    401: ErrorResponse,
+    403: ErrorResponse,
     200: UserResponse,
     400: ErrorResponse,
     404: ErrorResponse
@@ -103,7 +110,7 @@ export const updateUserSchema = {
   summary: 'Update user by id',
   description: 'Update a user by ID',
   params: Type.Object({
-    id: Type.String({ description: 'User ID' })
+    id: Type.String({ format: 'uuid', description: 'User ID' })
   }),
   body: Type.Partial(
     Type.Omit(UserBodySchema, [
@@ -116,6 +123,8 @@ export const updateUserSchema = {
     ])
   ),
   response: {
+    401: ErrorResponse,
+    403: ErrorResponse,
     200: UserResponse,
     400: ErrorResponse,
     404: ErrorResponse
@@ -127,9 +136,11 @@ export const deleteUserSchema = {
   summary: 'Delete user by id',
   description: 'Delete a user by ID',
   params: Type.Object({
-    id: Type.String({ description: 'User ID' })
+    id: Type.String({ format: 'uuid', description: 'User ID' })
   }),
   response: {
+    401: ErrorResponse,
+    403: ErrorResponse,
     204: {
       description: 'No content'
     },

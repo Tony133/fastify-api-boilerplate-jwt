@@ -20,14 +20,15 @@ describe('AuthenticationService', () => {
   const mockHash: any = { compare: async () => true };
   const service = new AuthenticationService(mockDb, mockHash);
 
-  test('login - should throw 404 if user is not found', async () => {
+  test('login - should throw 401 (generic message) if user is not found', async () => {
     mockDb.executeTakeFirst = async () => null;
 
     await assert.rejects(
       service.login('wrong@email.com', 'password'),
       (err: any) => {
-        assert.strictEqual(err.statusCode, 404);
-        assert.strictEqual(err.message, 'User not found');
+        // Same status and message as a wrong password: no user enumeration
+        assert.strictEqual(err.statusCode, 401);
+        assert.strictEqual(err.message, 'Invalid email or password');
         return true;
       }
     );
@@ -44,7 +45,7 @@ describe('AuthenticationService', () => {
       service.login('test@test.com', 'wrong-password'),
       (err: any) => {
         assert.strictEqual(err.statusCode, 401);
-        assert.strictEqual(err.message, 'Invalid password');
+        assert.strictEqual(err.message, 'Invalid email or password');
         return true;
       }
     );

@@ -12,50 +12,69 @@ import {
 } from "./authentication.schema";
 import { VerifyPayloadType } from "@fastify/jwt";
 
+// Brute-force protection: stricter limit than the global one for credential endpoints
+const LOGIN_RATE_LIMIT = { max: 10, timeWindow: '1 minute' };
 
 const authenticationRoutes: FastifyPluginAsyncTypebox = async (
   fastify: FastifyInstance
 ): Promise<void> => {
+  const { config } = fastify;
+
+  const issueTokens = (user: { id: string; firstName: string; email: string; roles: string[] }) => {
+    const accessToken = fastify.jwt.sign(
+      {
+        sub: user.id,
+        name: user.firstName,
+        email: user.email,
+        role: user.roles
+      },
+      { expiresIn: config.JWT_ACCESS_TOKEN_EXPIRES_IN }
+    );
+
+    // The refresh token carries only the subject and a type discriminator,
+    // so it cannot be used as an access token and vice versa.
+    const refreshToken = fastify.jwt.sign(
+      { sub: user.id, type: 'refresh' } satisfies RefreshTokenPayload,
+      { expiresIn: config.JWT_REFRESH_TOKEN_EXPIRES_IN }
+    );
+
+    return { accessToken, refreshToken };
+  };
+
   fastify.post<{ Body: LoginBody }>(
     '/login',
-    { schema: loginSchema },
+    { schema: loginSchema, config: { rateLimit: LOGIN_RATE_LIMIT } },
     async function (request, reply) {
       try {
         const { email, password } = request.body;
-
-        if (!email || !password) {
-          return reply.status(400).send({
-            error: 'Email and password are required'
-          });
-        }
 
         const userData = await fastify.authenticationService.login(
           email,
           password
         );
-        if (!userData) {
-          return reply.status(401).send({ error: 'Invalid email or password' });
+
+        const tokens = issueTokens(userData.user);
+
+        // Never expose the password hash: strip it explicitly in addition to
+        // the response schema (defence in depth).
+        const { password: _password, ...safeUser } = userData.user;
+
+        return reply.status(200).send({
+          userData: { user: safeUser, success: userData.success },
+          ...tokens
+        });
+      } catch (error: unknown) {
+        // Anything that is not a credentials failure (e.g. database down) is an
+        // unexpected error and is rendered by the global error handler.
+        if ((error as { statusCode?: number }).statusCode !== 401) {
+          throw error;
         }
 
-        const token = fastify.jwt.sign(
-          {
-            sub: userData.user.id,
-            name: userData.user.firstName,
-            email: userData.user.email,
-            role: userData.user.roles
-          },
-          { expiresIn: '2h' }
-        );
-
-        return reply.status(200).send({ userData, accessToken: token });
-      } catch (error: unknown) {
-        const err = error as { statusCode?: number; message?: string; name: string };
-        const statusCode = err.statusCode || 500;
-
-        return reply.status(statusCode).send({
-          statusCode: statusCode,
+        // Same generic message for unknown user and wrong password (no user enumeration)
+        return reply.status(401).send({
+          statusCode: 401,
           error: 'Invalid email or password',
-          message: err.message || 'Authentication failed'
+          message: 'Invalid email or password'
         });
       }
     }
@@ -63,32 +82,41 @@ const authenticationRoutes: FastifyPluginAsyncTypebox = async (
 
   fastify.post<{ Body: RefreshTokenBody }>(
     '/refresh-token',
-    { schema: refreshTokenSchema },
+    { schema: refreshTokenSchema, config: { rateLimit: LOGIN_RATE_LIMIT } },
     async function (request, reply) {
+      let decodedToken: RefreshTokenPayload & VerifyPayloadType;
       try {
-        const { refreshToken } = request.body;
-
-        const decodedToken = await fastify.jwt.verify<
-          RefreshTokenPayload & VerifyPayloadType
-        >(refreshToken);
-
-        if (!decodedToken) {
-          return reply.status(401).send({ error: 'Invalid token' });
-        }
-
-        const newAccessToken = fastify.jwt.sign(
-          {
-            sub: decodedToken.id,
-            name: decodedToken.name,
-            email: decodedToken.email,
-            role: decodedToken.role
-          },
-          { expiresIn: '3h' }
+        decodedToken = await fastify.jwt.verify<RefreshTokenPayload & VerifyPayloadType>(
+          request.body.refreshToken
         );
-
-        return reply.status(200).send({ refreshToken: newAccessToken });
       } catch (error) {
-        return reply.status(400).send({ error: 'Invalid refresh token' });
+        return reply.status(401).send({
+          statusCode: 401,
+          error: 'Unauthorized',
+          message: 'Invalid refresh token'
+        });
+      }
+
+      // Reject access tokens (or any other JWT signed with the same secret)
+      if (decodedToken.type !== 'refresh' || !decodedToken.sub) {
+        return reply.status(401).send({
+          statusCode: 401,
+          error: 'Unauthorized',
+          message: 'Invalid refresh token'
+        });
+      }
+
+      try {
+        // Re-read the user so a deleted user (or changed roles) is reflected immediately
+        const user = await fastify.authenticationService.getUserData(decodedToken.sub);
+        const tokens = issueTokens(user);
+        return reply.status(200).send(tokens);
+      } catch (error) {
+        return reply.status(401).send({
+          statusCode: 401,
+          error: 'Unauthorized',
+          message: 'Invalid refresh token'
+        });
       }
     }
   );
@@ -99,17 +127,9 @@ const authenticationRoutes: FastifyPluginAsyncTypebox = async (
       preHandler: [fastify.checkToken, fastify.checkRole('USER')],
       schema: isAuthenticationSchema
     },
-    async function (request: FastifyRequest, reply: FastifyReply) {
-      try {
-        const payload = request.user;
-        if (!payload) {
-          return reply.status(401).send({ error: 'Unauthorized' });
-        }
-
-        return reply.status(200).send({ authenticated: true });
-      } catch (error) {
-        return reply.status(400).send(error);
-      }
+    async function (_request: FastifyRequest, reply: FastifyReply) {
+      // checkToken has already rejected the request if the JWT is missing/invalid
+      return reply.status(200).send({ authenticated: true });
     }
   );
 
@@ -117,14 +137,9 @@ const authenticationRoutes: FastifyPluginAsyncTypebox = async (
     '/user-authenticated',
     { preHandler: [fastify.checkToken], schema: userAuthenticatedSchema },
     async function (request, reply) {
-      try {
-        const userId = (request.user as { sub: string }).sub;
-        const result = await fastify.authenticationService.getUserData(userId);
-        return reply.status(200).send(result);
-      } catch (err) {
-        fastify.log.error(err);
-        return reply.status(400).send({ error: `User not found` });
-      }
+      // A valid token whose user has since been deleted yields the service's 404
+      const result = await fastify.authenticationService.getUserData(request.user.sub);
+      return reply.status(200).send(result);
     }
   );
 };

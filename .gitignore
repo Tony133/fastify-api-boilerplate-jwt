@@ -73,3 +73,5 @@ dist
 .env.*
 
 tags
+# compiled tests (npm test)
+dist-test/

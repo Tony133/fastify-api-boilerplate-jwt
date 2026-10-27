@@ -50,4 +50,23 @@ describe('Register Routes', async () => {
 
     assert.strictEqual(response.statusCode, 400);
   });
+
+  test('should return 400 when the email is already registered', async (t) => {
+    const app = await build(t);
+    const payload = {
+      firstName: 'Dup',
+      lastName: 'User',
+      email: 'duplicate@example.com',
+      password: 'password123',
+      dateOfRegistration: new Date().toISOString().split('T')[0],
+      dateOfLastAccess: new Date().toISOString().split('T')[0]
+    };
+
+    const first = await app.inject({ method: 'POST', url: '/api/register', payload });
+    const second = await app.inject({ method: 'POST', url: '/api/register', payload });
+
+    assert.strictEqual(first.statusCode, 201);
+    assert.strictEqual(second.statusCode, 400);
+    assert.strictEqual(JSON.parse(second.payload).message, 'Registration failed');
+  });
 });

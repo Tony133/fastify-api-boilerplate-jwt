@@ -38,11 +38,13 @@ export const forgotPasswordSchema = {
   tags: ['forgot-password'],
   summary: 'Forgot password',
   security: [],
-  description: 'Requests password reset by sending an email to the user',
+  description:
+    'Requests a password reset. Always answers 200 with the same message, whether or not the email is registered.',
   body: ForgotPasswordBodySchema,
   response: {
     200: ForgotPasswordResponseSchema,
-    404: ErrorResponse
+    429: ErrorResponse,
+    500: ErrorResponse
   }
 };
 

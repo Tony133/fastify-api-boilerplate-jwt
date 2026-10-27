@@ -12,12 +12,24 @@ export const LoginBodySchema = Type.Object(
   }
 );
 
+export const LoginResponseSchema = Type.Object(
+  {
+    userData: Type.Object({
+      user: UserResponse,
+      success: Type.Boolean()
+    }),
+    accessToken: Type.String({ description: 'Short-lived JWT access token' }),
+    refreshToken: Type.String({ description: 'Long-lived JWT refresh token' })
+  },
+  {
+    description: 'Response for a successful login (password hash is never included)'
+  }
+);
+
 export const RefreshTokenPayloadSchema = Type.Object(
   {
-    id: Type.String({ description: 'User ID' }),
-    name: Type.String({ description: 'User name' }),
-    email: Type.String({ description: 'User email' }),
-    role: Type.String({ description: 'User role' })
+    sub: Type.String({ description: 'User ID' }),
+    type: Type.Literal('refresh', { description: 'Token type discriminator' })
   },
   {
     description: 'Payload contained in the refresh token'
@@ -31,6 +43,16 @@ export const RefreshTokenRequestSchema = Type.Object(
   {
     additionalProperties: false,
     description: "Request body for refreshing access token"
+  }
+);
+
+export const RefreshTokenResponseSchema = Type.Object(
+  {
+    accessToken: Type.String({ description: 'New access token' }),
+    refreshToken: Type.String({ description: 'New (rotated) refresh token' })
+  },
+  {
+    description: 'Response for a successful token refresh'
   }
 );
 
@@ -60,21 +82,25 @@ export const ErrorResponse = Type.Object(
 export const loginSchema = {
   tags: ['authentication'],
   summary: 'User authentication',
-  description: 'Authenticate user and return access token',
+  description: 'Authenticate user and return access and refresh tokens',
   security: [],
   body: LoginBodySchema,
   response: {
+    200: LoginResponseSchema,
     400: ErrorResponse,
-    401: ErrorResponse
+    401: ErrorResponse,
+    429: ErrorResponse
   }
 };
 
 export const refreshTokenSchema = {
   tags: ["authentication"],
   summary: "Refresh access token",
-  description: "Refresh access token using a valid refresh token",
+  description: "Issue a new access token (and a rotated refresh token) from a valid refresh token",
+  security: [],
   body: RefreshTokenRequestSchema,
   response: {
+    200: RefreshTokenResponseSchema,
     400: ErrorResponse,
     401: ErrorResponse
   }
@@ -98,8 +124,8 @@ export const userAuthenticatedSchema = {
   description: "Retrieve data of the authenticated user",
   response: {
     200: UserResponse,
-    400: ErrorResponse,
-    401: ErrorResponse
+    401: ErrorResponse,
+    404: ErrorResponse
   }
 };
 

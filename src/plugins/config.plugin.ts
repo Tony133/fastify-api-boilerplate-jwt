@@ -4,6 +4,15 @@ import { Type, type Static } from 'typebox';
 import { FastifyInstance } from 'fastify';
 
 export const EnvSchema = Type.Object({
+  NODE_ENV: Type.Union(
+    [
+      Type.Literal('development'),
+      Type.Literal('test'),
+      Type.Literal('production')
+    ],
+    { default: 'development' }
+  ),
+
   LOG_LEVEL: Type.Union(
     [
       Type.Literal('fatal'),
@@ -16,7 +25,10 @@ export const EnvSchema = Type.Object({
     { default: 'info' }
   ),
 
-  SECRET_KEY_JWT: Type.String(),
+  SECRET_KEY_JWT: Type.String({ minLength: 1 }),
+  // Accepts the formats of @fastify/jwt `expiresIn` (e.g. '15m', '2h', '7d')
+  JWT_ACCESS_TOKEN_EXPIRES_IN: Type.String({ default: '2h' }),
+  JWT_REFRESH_TOKEN_EXPIRES_IN: Type.String({ default: '7d' }),
 
   // Database
   DB_HOST: Type.String({ default: 'localhost' }),
@@ -24,7 +36,6 @@ export const EnvSchema = Type.Object({
   DB_USER: Type.String({ default: 'postgres' }),
   DB_PASSWORD: Type.String(),
   DB_NAME: Type.String({ default: 'app_backend' }),
-  DB_NAME_TEST: Type.String({ default: 'app_backend' }),
   DB_POOL_MAX: Type.Number({ default: 10 }),
 
   // Database - Test

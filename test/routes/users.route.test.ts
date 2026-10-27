@@ -138,4 +138,61 @@ describe('Users Routes', () => {
 
     assert.strictEqual(response.statusCode, 401);
   });
+
+  test('GET /:id - should return the user when it exists', async (t: TestContext) => {
+    const app = await build(t);
+    const token = app.jwt.sign({ sub: 'admin-id', role: 'ADMIN' });
+
+    const createRes = await app.inject({
+      method: 'POST',
+      url: '/api/users/',
+      headers: { authorization: `Bearer ${token}` },
+      payload: {
+        firstName: 'Find',
+        lastName: 'Myself',
+        email: 'find.me@example.com',
+        password: 'Password123!'
+      }
+    });
+    const created = JSON.parse(createRes.payload);
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/api/users/${created.id}`,
+      headers: { authorization: `Bearer ${token}` }
+    });
+
+    assert.strictEqual(response.statusCode, 200);
+    const user = JSON.parse(response.payload);
+    assert.strictEqual(user.id, created.id);
+    assert.strictEqual(user.email, 'find.me@example.com');
+    assert.strictEqual(user.password, undefined, 'password hash must never be returned');
+  });
+
+  test('should return 403 for an authenticated user without the ADMIN role', async (t: TestContext) => {
+    const app = await build(t);
+    const token = app.jwt.sign({ sub: 'user-id', role: ['USER'] });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/users/',
+      headers: { authorization: `Bearer ${token}` }
+    });
+
+    assert.strictEqual(response.statusCode, 403);
+  });
+
+  test('GET /:id - should return 400 (not a database error) for a malformed id', async (t: TestContext) => {
+    const app = await build(t);
+    const token = app.jwt.sign({ sub: 'admin-id', role: 'ADMIN' });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/users/not-a-uuid',
+      headers: { authorization: `Bearer ${token}` }
+    });
+
+    assert.strictEqual(response.statusCode, 400);
+    assert.strictEqual(JSON.parse(response.payload).error, 'FST_ERR_VALIDATION');
+  });
 });

@@ -9,7 +9,9 @@ async function checkTokenPlugin(fastify: FastifyInstance) {
         await request.jwtVerify();
       } catch (err) {
         fastify.log.error(err);
-        reply.send(err);
+        // In an async hook the reply must be returned after sending, otherwise
+        // Fastify continues the lifecycle and reaches the route handler.
+        return reply.send(err);
       }
     }
   );

@@ -15,7 +15,7 @@ export type TestContext = {
   after: typeof test.after
 }
 
-function mockMailerPlugin(fastify: FastifyInstance) {
+export function mockMailerPlugin(fastify: FastifyInstance) {
   // Mock MailerService
   const mockMailer: MailerService = {
     transporter: {} as any,
@@ -38,13 +38,27 @@ export function config() {
   }
 }
 
+// Each test file runs in its own process: the users table is emptied the first
+// time build() is called in that process, so every file starts from a clean
+// database and the suite is idempotent across runs (requires --test-concurrency=1,
+// which is set in the `test` script, so files never share the database concurrently).
+let databaseCleaned = false;
+
+async function cleanDatabaseOnce(app: FastifyInstance) {
+  if (databaseCleaned) return;
+  await app.database.deleteFrom('users').execute();
+  databaseCleaned = true;
+}
+
 // Automatically build and tear down our instance
-export async function build(t?: TestContext) {
+export async function build(t?: TestContext, extend?: (app: FastifyInstance) => void) {
   const app = Fastify();
 
   app.register(fp(mockMailerPlugin), config());
   app.register(fp(serviceApp), config());
+  if (extend) extend(app);
   await app.ready();
+  await cleanDatabaseOnce(app);
 
   // If we pass the test contest, it will close the app after we are done
   if (t && t.after) {

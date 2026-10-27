@@ -19,8 +19,10 @@ export class AuthenticationService {
       .where('email', '=', email)
       .executeTakeFirst();
 
+    // Same error (and same status code) whether the user does not exist or the
+    // password is wrong, so the endpoint cannot be used to enumerate accounts.
     if (!user) {
-      throw httpErrors.notFound('User not found');
+      throw httpErrors.unauthorized('Invalid email or password');
     }
 
     const isValidPassword = await this.hashingService.compare(
@@ -29,7 +31,7 @@ export class AuthenticationService {
     );
 
     if (!isValidPassword) {
-      throw httpErrors.unauthorized('Invalid password');
+      throw httpErrors.unauthorized('Invalid email or password');
     }
 
     // Update last access date

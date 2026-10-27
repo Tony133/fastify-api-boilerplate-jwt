@@ -8,7 +8,8 @@ export default async function forgotPasswordPlugin(fastify: FastifyInstance) {
   const forgotPasswordService = new ForgotPasswordService(
     database,
     hashingService,
-    mailerService
+    mailerService,
+    fastify.log
   );
 
   fastify.decorate('forgotPasswordService', forgotPasswordService);
