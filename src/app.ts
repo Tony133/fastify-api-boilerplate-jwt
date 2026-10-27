@@ -61,8 +61,10 @@ const app: FastifyPluginAsync<AppOptions> = async (
       error:
         error.code ??
         (statusCode >= 500 ? 'Internal Server Error' : 'Bad Request'),
+      // Details of unexpected (5xx) errors are hidden unless explicitly enabled
+      // (EXPOSE_ERROR_DETAILS=true, meant for local development only).
       message:
-        statusCode >= 500 && process.env.NODE_ENV === 'production'
+        statusCode >= 500 && !fastify.config.EXPOSE_ERROR_DETAILS
           ? 'Internal Server Error'
           : error.message,
       ...(error.validation ? { details: error.validation } : {})

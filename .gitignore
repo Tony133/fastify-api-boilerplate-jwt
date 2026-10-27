@@ -71,6 +71,7 @@ dist
 .env.production.local
 .env.local
 .env.*
+!.env.test.example
 
 tags
 # compiled tests (npm test)

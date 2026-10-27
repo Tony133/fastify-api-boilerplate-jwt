@@ -13,8 +13,8 @@
     "build:ts": "tsc",
     "watch:ts": "tsc -w",
     "start": "npm run build:ts && node dist/server.js",
-    "test": "npm run build:test && c8 node --env-file=.env --test --test-concurrency=1 \"dist-test/test/**/*.test.js\"",
-    "test:coverage": "npm run build:test && c8 --reporter=html --reporter=text node --env-file=.env --test --test-concurrency=1 \"dist-test/test/**/*.test.js\"",
+    "test": "npm run build:test && c8 node --env-file-if-exists=.env.test --test --test-concurrency=1 \"dist-test/test/**/*.test.js\"",
+    "test:coverage": "npm run build:test && c8 --reporter=html --reporter=text node --env-file-if-exists=.env.test --test --test-concurrency=1 \"dist-test/test/**/*.test.js\"",
     "prepare": "husky",
     "build:test": "tsc -p test/tsconfig.json"
   },

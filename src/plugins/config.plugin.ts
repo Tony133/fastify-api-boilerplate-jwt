@@ -4,15 +4,6 @@ import { Type, type Static } from 'typebox';
 import { FastifyInstance } from 'fastify';
 
 export const EnvSchema = Type.Object({
-  NODE_ENV: Type.Union(
-    [
-      Type.Literal('development'),
-      Type.Literal('test'),
-      Type.Literal('production')
-    ],
-    { default: 'development' }
-  ),
-
   LOG_LEVEL: Type.Union(
     [
       Type.Literal('fatal'),
@@ -24,6 +15,10 @@ export const EnvSchema = Type.Object({
     ],
     { default: 'info' }
   ),
+
+  // Include the message of unexpected (5xx) errors in HTTP responses.
+  // Off by default: enable it only for local development.
+  EXPOSE_ERROR_DETAILS: Type.Boolean({ default: false }),
 
   SECRET_KEY_JWT: Type.String({ minLength: 1 }),
   // Accepts the formats of @fastify/jwt `expiresIn` (e.g. '15m', '2h', '7d')
@@ -38,14 +33,6 @@ export const EnvSchema = Type.Object({
   DB_NAME: Type.String({ default: 'app_backend' }),
   DB_POOL_MAX: Type.Number({ default: 10 }),
 
-  // Database - Test
-  DB_TEST_HOST: Type.Optional(Type.String()),
-  DB_TEST_PORT: Type.Optional(Type.Number()),
-  DB_TEST_USER: Type.Optional(Type.String()),
-  DB_TEST_PASSWORD: Type.Optional(Type.String()),
-  DB_TEST_NAME: Type.Optional(Type.String()),
-  DB_TEST_POOL_MAX: Type.Optional(Type.Number()),
-
   // Email
   EMAIL_HOST: Type.String(),
   EMAIL_PORT: Type.Number(),
@@ -56,17 +43,6 @@ export const EnvSchema = Type.Object({
   EMAIL_FROM_EMAIL: Type.String(),
   EMAIL_DEBUG: Type.Boolean({ default: false }),
   EMAIL_LOGGER: Type.Boolean({ default: false }),
-
-  // Email - Test
-  EMAIL_TEST_HOST: Type.Optional(Type.String()),
-  EMAIL_TEST_PORT: Type.Optional(Type.Number()),
-  EMAIL_TEST_SECURE: Type.Optional(Type.Boolean()),
-  EMAIL_TEST_AUTH_USER: Type.Optional(Type.String()),
-  EMAIL_TEST_AUTH_PASSWORD: Type.Optional(Type.String()),
-  EMAIL_TEST_FROM_NAME: Type.Optional(Type.String()),
-  EMAIL_TEST_FROM_EMAIL: Type.Optional(Type.String()),
-  EMAIL_TEST_DEBUG: Type.Optional(Type.Boolean()),
-  EMAIL_TEST_LOGGER: Type.Optional(Type.Boolean()),
 
   // Swagger & Fastify
   SWAGGER_USER: Type.String(),
@@ -80,9 +56,12 @@ export type Config = Static<typeof EnvSchema>;
 
 
 async function configPlugin(fastify: FastifyInstance) {
+  // Configuration comes from the process environment only. The .env file is
+  // loaded by the entrypoint (server.ts) or by `--env-file`, never from here,
+  // so tests and other environments can never pick up values from a stray .env.
   const config = envSchema<Config>({
     schema: EnvSchema,
-    dotenv: true
+    dotenv: false
   });
 
   fastify.decorate('config', config);

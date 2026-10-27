@@ -14,8 +14,7 @@ import { Config } from '../../src/plugins/config.plugin';
 /**
  * These plugins are normally loaded through autoload with the real config.
  * Here each one is registered on a bare Fastify instance with a hand-made
- * `config` decorator, so the failure paths and the production/test
- * configuration branches can be exercised in isolation.
+ * `config` decorator, so the failure paths can be exercised in isolation.
  */
 function appWithConfig(config: Partial<Config>) {
   const app = Fastify({ logger: false });
@@ -24,12 +23,13 @@ function appWithConfig(config: Partial<Config>) {
 }
 
 const env = process.env;
+// Same database the rest of the suite uses (from .env.test or the CI environment)
 const realDb = {
-  host: env.DB_TEST_HOST || 'localhost',
-  port: Number(env.DB_TEST_PORT || 5432),
-  user: env.DB_TEST_USER || 'test_user',
-  password: env.DB_TEST_PASSWORD || 'test_password',
-  database: env.DB_TEST_NAME || 'test_db'
+  host: env.DB_HOST || 'localhost',
+  port: Number(env.DB_PORT || 5433),
+  user: env.DB_USER || 'test_user',
+  password: env.DB_PASSWORD || 'test_password',
+  database: env.DB_NAME || 'test_db'
 };
 
 describe('jwt plugin', () => {
@@ -58,46 +58,17 @@ describe('database plugin', () => {
     ...overrides
   });
 
-  test('production: should use DB_* and ignore DB_TEST_* overrides', async (t) => {
-    const app = appWithConfig(asConfig({
-      NODE_ENV: 'production',
-      // Deliberately broken test settings: they must be ignored in production
-      DB_TEST_HOST: '127.0.0.1', DB_TEST_PORT: 1, DB_TEST_USER: 'nobody',
-      DB_TEST_PASSWORD: 'x', DB_TEST_NAME: 'nope', DB_TEST_POOL_MAX: 1
-    }));
+  test('should connect, decorate `database` and close the pool on shutdown', async () => {
+    const app = appWithConfig(asConfig({}));
     app.register(databasePlugin);
     await app.ready();
-    t.after(() => app.close());
 
     assert.ok(app.database instanceof Kysely);
-  });
-
-  test('test env: should prefer DB_TEST_* when set', async (t) => {
-    const app = appWithConfig(asConfig({
-      NODE_ENV: 'test',
-      // Deliberately broken main settings: the test ones must win
-      DB_HOST: '127.0.0.1', DB_PORT: 1, DB_USER: 'nobody', DB_PASSWORD: 'x', DB_NAME: 'nope',
-      DB_TEST_HOST: realDb.host, DB_TEST_PORT: realDb.port, DB_TEST_USER: realDb.user,
-      DB_TEST_PASSWORD: realDb.password, DB_TEST_NAME: realDb.database, DB_TEST_POOL_MAX: 2
-    }));
-    app.register(databasePlugin);
-    await app.ready();
-    t.after(() => app.close());
-
-    assert.ok(app.database instanceof Kysely);
-  });
-
-  test('test env: should fall back to DB_* when DB_TEST_* are not set', async (t) => {
-    const app = appWithConfig(asConfig({ NODE_ENV: 'test' }));
-    app.register(databasePlugin);
-    await app.ready();
-    t.after(() => app.close());
-
-    assert.ok(app.database instanceof Kysely);
+    await app.close();
   });
 
   test('should refuse to start when the database is unreachable', async () => {
-    const app = appWithConfig(asConfig({ NODE_ENV: 'production', DB_HOST: '127.0.0.1', DB_PORT: 1 }));
+    const app = appWithConfig(asConfig({ DB_HOST: '127.0.0.1', DB_PORT: 1 }));
     app.register(databasePlugin);
 
     await assert.rejects(async () => { await app.ready(); });
@@ -116,15 +87,8 @@ describe('mailer plugin', () => {
     ...overrides
   });
 
-  const testOverrides: Partial<Config> = {
-    EMAIL_TEST_HOST: 'smtp.test.example', EMAIL_TEST_PORT: 2525, EMAIL_TEST_SECURE: false,
-    EMAIL_TEST_AUTH_USER: 'test', EMAIL_TEST_AUTH_PASSWORD: 'test-pass',
-    EMAIL_TEST_FROM_NAME: 'Test', EMAIL_TEST_FROM_EMAIL: 'test@example.com',
-    EMAIL_TEST_DEBUG: true, EMAIL_TEST_LOGGER: true
-  };
-
-  test('production: should use EMAIL_* and ignore EMAIL_TEST_*', async (t) => {
-    const app = appWithConfig(asConfig({ NODE_ENV: 'production', ...testOverrides }));
+  test('should build the real MailerService from EMAIL_*', async (t) => {
+    const app = appWithConfig(asConfig({}));
     app.register(mailerPlugin);
     await app.ready();
     t.after(() => app.close());
@@ -136,30 +100,8 @@ describe('mailer plugin', () => {
     assert.strictEqual(opts.secure, true);
   });
 
-  test('test env: should prefer EMAIL_TEST_* when set', async (t) => {
-    const app = appWithConfig(asConfig({ NODE_ENV: 'test', ...testOverrides }));
-    app.register(mailerPlugin);
-    await app.ready();
-    t.after(() => app.close());
-
-    const opts = transporterOptions(app);
-    assert.strictEqual(opts.host, 'smtp.test.example');
-    assert.strictEqual(opts.port, 2525);
-    assert.strictEqual(opts.secure, false);
-    assert.strictEqual(opts.debug, true);
-  });
-
-  test('test env: should fall back to EMAIL_* when EMAIL_TEST_* are not set', async (t) => {
-    const app = appWithConfig(asConfig({ NODE_ENV: 'test' }));
-    app.register(mailerPlugin);
-    await app.ready();
-    t.after(() => app.close());
-
-    assert.strictEqual(transporterOptions(app).host, 'smtp.prod.example');
-  });
-
   test('should keep an already injected mailerService (test mock)', async (t) => {
-    const app = appWithConfig(asConfig({ NODE_ENV: 'test' }));
+    const app = appWithConfig(asConfig({}));
     const mock = { sendMail: async () => ({}) } as unknown as MailerService;
     app.register(fp(async (f) => { f.decorate('mailerService', mock); }));
     app.register(mailerPlugin);

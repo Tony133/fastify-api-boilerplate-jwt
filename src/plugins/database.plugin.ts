@@ -7,18 +7,17 @@ import pg from 'pg';
 async function databasePlugin(fastify: FastifyInstance) {
   const { config } = fastify;
 
-  // DB_TEST_* overrides are honoured only outside production, so a stray
-  // variable can never point a production deployment at the test database.
-  const useTestDb = config.NODE_ENV !== 'production';
-
+  // The application knows a single set of DB_* variables: each environment
+  // (development, test, CI, production) supplies its own values, the code
+  // never picks between alternatives based on the environment name.
   const dialect = new PostgresDialect({
     pool: new pg.Pool({
-      host: (useTestDb && config.DB_TEST_HOST) || config.DB_HOST,
-      port: (useTestDb && config.DB_TEST_PORT) || config.DB_PORT,
-      user: (useTestDb && config.DB_TEST_USER) || config.DB_USER,
-      password: (useTestDb && config.DB_TEST_PASSWORD) || config.DB_PASSWORD,
-      database: (useTestDb && config.DB_TEST_NAME) || config.DB_NAME,
-      max: (useTestDb && config.DB_TEST_POOL_MAX) || config.DB_POOL_MAX,
+      host: config.DB_HOST,
+      port: config.DB_PORT,
+      user: config.DB_USER,
+      password: config.DB_PASSWORD,
+      database: config.DB_NAME,
+      max: config.DB_POOL_MAX,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000
     })
